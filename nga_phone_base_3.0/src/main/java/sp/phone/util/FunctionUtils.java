@@ -18,11 +18,8 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,11 +29,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.HashSet;
 
 import gov.anzong.androidnga.BuildConfig;
 import gov.anzong.androidnga.R;
@@ -46,7 +40,6 @@ import sp.phone.bean.ThreadRowInfo;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.fragment.dialog.ReportDialogFragment;
-import sp.phone.fragment.dialog.SuperTextDialogFragment;
 import sp.phone.proxy.ProxyBridge;
 import sp.phone.theme.ThemeManager;
 import sp.phone.view.webview.WebViewClientEx;
@@ -199,12 +192,8 @@ public class FunctionUtils {
                                                      boolean showImage, int imageQuality, final String fgColorStr,
                                                      final String bgcolorStr, Context context) {
         initStaticStrings(context);
-        HashSet<String> imageURLSet = new HashSet<String>();
         String ngaHtml = StringUtils.decodeForumTag(row.getSignature(),
-                showImage, imageQuality, imageURLSet);
-        if (imageURLSet.size() == 0) {
-            imageURLSet = null;
-        }
+                showImage, imageQuality, null);
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
                     + "]</font>";
@@ -551,7 +540,7 @@ public class FunctionUtils {
             fgColor = nickNameTV.getResources().getColor(R.color.title_red);
             nickName += "(VIP)";
         } else if (!StringUtils.isEmpty(row.getMuteTime())
-                && !"0".equals(row.getMuteTime())) {
+                && !"0".equals(row.getMuteTime()) || row.isMuted()) {
             fgColor = nickNameTV.getResources().getColor(R.color.title_orange);
             nickName += "(" + legend + ")";
         }
@@ -602,12 +591,8 @@ public class FunctionUtils {
                                              boolean showImage, int imageQuality, final String fgColorStr,
                                              final String bgcolorStr, Context context) {
         initStaticStrings(context);
-        HashSet<String> imageURLSet = new HashSet<String>();
         String ngaHtml = StringUtils.decodeForumTag(row.getSignature(),
-                showImage, imageQuality, imageURLSet);
-        if (imageURLSet.size() == 0) {
-            imageURLSet = null;
-        }
+                showImage, imageQuality, null);
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = row.getAlterinfo();
         }
@@ -668,21 +653,17 @@ public class FunctionUtils {
 
     public static String avatarToHtmlText_Message(final MessageArticlePageInfo row, boolean showImage,
                                                   int imageQuality, final String fgColorStr, final String bgcolorStr, Context context) {
-        HashSet<String> imageURLSet = new HashSet<String>();
         String ngaHtml = null;
         initStaticStrings(context);
         if (row.getJs_escap_avatar().equals("")) {
             ngaHtml = StringUtils
                     .decodeForumTag(
                             "这家伙是骷髅党,头像什么的没有啦~<br/><img src='file:///android_asset/default_avatar.png' style= 'max-width:100%;' >",
-                            showImage, imageQuality, imageURLSet);
+                            showImage, imageQuality, null);
         } else {
             ngaHtml = StringUtils.decodeForumTag(
                     "[img]" + parseAvatarUrl(row.getJs_escap_avatar())
-                            + "[/img]", showImage, imageQuality, imageURLSet);
-        }
-        if (imageURLSet.size() == 0) {
-            imageURLSet = null;
+                            + "[/img]", showImage, imageQuality, null);
         }
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
@@ -700,21 +681,17 @@ public class FunctionUtils {
 
     public static String avatarToHtmlText(final ThreadRowInfo row, boolean showImage,
                                           int imageQuality, final String fgColorStr, final String bgcolorStr, Context context) {
-        HashSet<String> imageURLSet = new HashSet<String>();
         String ngaHtml = null;
         initStaticStrings(context);
         if (row.getJs_escap_avatar().equals("")) {
             ngaHtml = StringUtils
                     .decodeForumTag(
                             "这家伙是骷髅党,头像什么的没有啦~<br/><img src='file:///android_asset/default_avatar.png' style= 'max-width:100%;' >",
-                            showImage, imageQuality, imageURLSet);
+                            showImage, imageQuality, null);
         } else {
             ngaHtml = StringUtils.decodeForumTag(
                     "[img]" + parseAvatarUrl(row.getJs_escap_avatar())
-                            + "[/img]", showImage, imageQuality, imageURLSet);
-        }
-        if (imageURLSet.size() == 0) {
-            imageURLSet = null;
+                            + "[/img]", showImage, imageQuality, null);
         }
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = row.getAlterinfo();
@@ -1076,24 +1053,6 @@ public class FunctionUtils {
         return "com.android.providers.media.documents".equals(uri
                 .getAuthority());
     }
-
-    public static void handleSupertext(final EditText bodyText, final Context context, final View v) {
-        Bundle arg = new Bundle();
-        DialogFragment df = new SuperTextDialogFragment(bodyText);
-        df.setArguments(arg);
-        final String dialogTag = SuperTextDialogFragment.class.getCanonicalName();
-        FragmentManager fm = ((AppCompatActivity) context).getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        Fragment prev = fm.findFragmentByTag(dialogTag);
-        if (prev != null) {
-            ft.remove(prev);
-        }
-        try {
-            df.show(ft, dialogTag);
-        } catch (Exception e) {
-            NLog.e(SuperTextDialogFragment.class.getSimpleName(), NLog.getStackTraceString(e));
-        }
-    }// OK
 
     public static String getngaClientChecksum(Context context) {
         String str = null;

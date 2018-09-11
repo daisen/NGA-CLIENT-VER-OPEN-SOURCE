@@ -30,7 +30,7 @@ public abstract class BaseAdapter<E, T extends RecyclerView.ViewHolder> extends 
 
     protected Context mContext;
 
-    protected LayoutInflater mLayoutInflater;
+    protected LayoutInflater mInflater;
 
     protected List<E> mDataList = new ArrayList<>();
 
@@ -43,7 +43,7 @@ public abstract class BaseAdapter<E, T extends RecyclerView.ViewHolder> extends 
 
     public BaseAdapter(Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
+        mInflater = LayoutInflater.from(mContext);
     }
 
     public void addHeaderView(View... headerViews) {
@@ -146,7 +146,7 @@ public abstract class BaseAdapter<E, T extends RecyclerView.ViewHolder> extends 
         } else if (mEmptyView != null && viewType == VIEW_TYPE_EMPTY) {
             viewHolder = onCreateEmptyViewHolder(parent, mEmptyView);
         } else {
-            viewHolder = onCreateItemViewHolder(parent, mLayoutInflater);
+            viewHolder = onCreateItemViewHolder(parent, mInflater);
         }
         return viewHolder;
     }

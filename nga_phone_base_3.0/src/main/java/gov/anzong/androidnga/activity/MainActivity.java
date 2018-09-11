@@ -8,10 +8,14 @@ import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.alibaba.android.arouter.facade.Postcard;
+import com.alibaba.android.arouter.launcher.ARouter;
+
 import gov.anzong.androidnga.NgaClientApp;
 import gov.anzong.androidnga.R;
-import sp.phone.common.User;
+import gov.anzong.androidnga.arouter.ARouterConstants;
 import sp.phone.common.UserManagerImpl;
+import sp.phone.forumoperation.ParamKey;
 import sp.phone.fragment.BoardFragment;
 import sp.phone.fragment.dialog.AboutClientDialogFragment;
 import sp.phone.fragment.dialog.ProfileSearchDialogFragment;
@@ -25,25 +29,30 @@ import sp.phone.util.PermissionUtils;
 
 public class MainActivity extends BaseActivity {
 
-    private BoardContract.Presenter mPresenter;
-
     private boolean mIsNightMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        hideActionBar();
+        setActionBarEnabled(false);
         super.onCreate(savedInstanceState);
-        prepare();
+        checkPermission();
+        checkNewVersion();
         initView();
         mIsNightMode = ThemeManager.getInstance().isNightMode();
-        getSwipeBackLayout().setEnableGesture(false);
-
+        setSwipeBackEnable(false);
     }
 
-    private void prepare() {
-        checkNewVersion();
+    private void checkPermission() {
         if (!PermissionUtils.hasStoragePermission(this)) {
             PermissionUtils.requestStoragePermission(this);
+        }
+    }
+
+    private void checkNewVersion() {
+        NgaClientApp app = (NgaClientApp) getApplication();
+        if (app.isNewVersion()) {
+            app.setNewVersion(false);
+            new VersionUpgradeDialogFragment().show(getSupportFragmentManager(), null);
         }
     }
 
@@ -56,15 +65,6 @@ public class MainActivity extends BaseActivity {
         super.onResume();
     }
 
-    //OK
-    private void checkNewVersion() {
-        NgaClientApp app = (NgaClientApp) getApplication();
-        if (app.isNewVersion()) {
-            app.setNewVersion(false);
-            new VersionUpgradeDialogFragment().show(getSupportFragmentManager(), null);
-        }
-    }
-
     private void initView() {
         FragmentManager fm = getSupportFragmentManager();
         Fragment fragment = fm.findFragmentByTag(BoardFragment.class.getSimpleName());
@@ -72,7 +72,7 @@ public class MainActivity extends BaseActivity {
             fragment = new BoardFragment();
             fm.beginTransaction().replace(android.R.id.content, fragment, BoardFragment.class.getSimpleName()).commit();
         }
-        mPresenter = new BoardPresenter((BoardContract.View) fragment);
+        new BoardPresenter((BoardContract.View) fragment);
     }
 
     @Override
@@ -86,19 +86,19 @@ public class MainActivity extends BaseActivity {
         // Handle action buttons
         switch (item.getItemId()) {
             case R.id.menu_setting:
-                jumpToSetting();
+                startSettingActivity();
                 break;
             case R.id.menu_bookmark:
-                jumpToBookmark();
+                startFavoriteTopicActivity();
                 break;
             case R.id.menu_msg:
-                myMessage();
+                startMessageActivity();
                 break;
             case R.id.menu_post:
-                jumpToMyPost(false);
+                startPostActivity(false);
                 break;
             case R.id.menu_reply:
-                jumpToMyPost(true);
+                startPostActivity(true);
                 break;
             case R.id.menu_about:
                 aboutNgaClient();
@@ -110,7 +110,7 @@ public class MainActivity extends BaseActivity {
                 new UrlInputDialogFragment().show(getSupportFragmentManager());
                 break;
             case R.id.menu_gun:
-                jumpToRecentReply();
+                startNotificationActivity();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -122,17 +122,17 @@ public class MainActivity extends BaseActivity {
         new ProfileSearchDialogFragment().show(getSupportFragmentManager());
     }
 
-    private void myMessage() {
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, mConfig.messageActivityClass);
-        startActivity(intent);
+    private void startMessageActivity() {
+        ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_MESSAGE_LIST)
+                .navigation(this);
     }
 
     private void aboutNgaClient() {
         new AboutClientDialogFragment().show(getSupportFragmentManager());
     }
 
-    private void jumpToSetting() {
+    private void startSettingActivity() {
         Intent intent = new Intent();
         intent.setClass(MainActivity.this, SettingsActivity.class);
         startActivityForResult(intent, ActivityUtils.REQUEST_CODE_SETTING);
@@ -147,36 +147,29 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void jumpToRecentReply() {
-        Intent intent = new Intent();
-        intent.putExtra("recentmode", "recentmode");
-        intent.setClass(MainActivity.this, mConfig.recentReplyListActivityClass);
-        startActivity(intent);
+    private void startNotificationActivity() {
+        ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_NOTIFICATION)
+                .navigation(this);
     }
 
-    private void jumpToMyPost(boolean isReply) {
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, mConfig.topicActivityClass);
-        User user = UserManagerImpl.getInstance().getActiveUser();
-
-        if (user == null) {
-            showToast("你还没有登录");
-            return;
-        }
-        String userName = user.getNickName();
+    // NPE问题
+    private void startPostActivity(boolean isReply) {
+        String userName = UserManagerImpl.getInstance().getActiveUser().getNickName();
+        Postcard postcard = ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+                .withString(ParamKey.KEY_AUTHOR, userName);
         if (isReply) {
-            intent.putExtra("author", userName);
-            intent.putExtra("searchpost", 1);
-        } else {
-            intent.putExtra("author", userName);
+            postcard.withInt(ParamKey.KEY_SEARCH_POST, 1);
         }
-        startActivity(intent);
+        postcard.navigation(this);
     }
 
-    private void jumpToBookmark() {
-        Intent intent_bookmark = new Intent(this, mConfig.topicActivityClass);
-        intent_bookmark.putExtra("favor", 1);
-        startActivity(intent_bookmark);
+    private void startFavoriteTopicActivity() {
+        ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+                .withInt(ParamKey.KEY_FAVOR, 1)
+                .navigation(this);
     }
 
 

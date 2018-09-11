@@ -1,5 +1,6 @@
 package sp.phone.bean;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +32,29 @@ public class ThreadRowInfo {
     public List<String> hotReplies; //热门回复
 
     private boolean isInBlackList;
-    private String formattedHtmlData;
+
+    private String mFormattedHtmlData;
+
     private String from_client;
     private String from_client_model;
+
+    private boolean mMuted;
+
+    private String mPostCount;
+
+    private float mReputation;
+
+    private String mMemberGroup;
+
+    private List<String> mImageUrlList = new ArrayList<>();
+
+    public void addImageUrl(String url) {
+        mImageUrlList.add(url);
+    }
+
+    public List<String> getImageUrls() {
+        return mImageUrlList;
+    }
 
     public int getScore() {
         return score;
@@ -236,12 +257,42 @@ public class ThreadRowInfo {
     }
 
     public String getFormattedHtmlData() {
-        return formattedHtmlData;
+        return mFormattedHtmlData;
     }
 
     public void setFormattedHtmlData(String formattedHtmlData) {
-        this.formattedHtmlData = formattedHtmlData;
+        mFormattedHtmlData = formattedHtmlData;
     }
 
+    public boolean isMuted() {
+        return mMuted;
+    }
 
+    public void setMuted(boolean muted) {
+        mMuted = muted;
+    }
+
+    public String getPostCount() {
+        return mPostCount;
+    }
+
+    public void setPostCount(String postCount) {
+        mPostCount = postCount;
+    }
+
+    public float getReputation() {
+        return mReputation;
+    }
+
+    public void setReputation(float reputation) {
+        mReputation = reputation;
+    }
+
+    public String getMemberGroup() {
+        return mMemberGroup;
+    }
+
+    public void setMemberGroup(String memberGroup) {
+        mMemberGroup = memberGroup;
+    }
 }

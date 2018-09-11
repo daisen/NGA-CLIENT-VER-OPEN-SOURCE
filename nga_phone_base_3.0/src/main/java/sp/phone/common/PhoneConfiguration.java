@@ -4,13 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import gov.anzong.androidnga.activity.ArticleListActivity;
-import gov.anzong.androidnga.activity.ProfileActivity;
 import gov.anzong.androidnga.activity.LoginActivity;
 import gov.anzong.androidnga.activity.MessageDetailActivity;
-import gov.anzong.androidnga.activity.MessageListActivity;
 import gov.anzong.androidnga.activity.MessagePostActivity;
 import gov.anzong.androidnga.activity.PostActivity;
-import gov.anzong.androidnga.activity.RecentNotificationActivity;
+import gov.anzong.androidnga.activity.ProfileActivity;
 import gov.anzong.androidnga.activity.SignPostActivity;
 import gov.anzong.androidnga.activity.TopicListActivity;
 
@@ -22,8 +20,6 @@ public class PhoneConfiguration implements PreferenceKey, SharedPreferences.OnSh
     public Class<?> signPostActivityClass = SignPostActivity.class;
     public Class<?> profileActivityClass = ProfileActivity.class;
     public Class<?> loginActivityClass = LoginActivity.class;
-    public Class<?> recentReplyListActivityClass = RecentNotificationActivity.class;
-    public Class<?> messageActivityClass = MessageListActivity.class;
     public Class<?> messageDetialActivity = MessageDetailActivity.class;
 
     private boolean mNotificationEnabled;
@@ -88,7 +84,7 @@ public class PhoneConfiguration implements PreferenceKey, SharedPreferences.OnSh
                 mTopicContentSize = sp.getInt(key, 16);
                 break;
             case PreferenceKey.TEXT_SIZE:
-                mTopicTitleSize = sp.getFloat(key, 21f);
+                mTopicTitleSize = sp.getFloat(key, Constants.DEFAULT_TEXT_SIZE);
                 break;
             case PreferenceKey.REFRESH_AFTERPOST_SETTING_MODE:
                 mUpdateAfterPost = sp.getBoolean(key, true);
@@ -145,7 +141,7 @@ public class PhoneConfiguration implements PreferenceKey, SharedPreferences.OnSh
         mShowSignature = sp.getBoolean(PreferenceKey.SHOW_SIGNATURE, false);
         mShowColorText = sp.getBoolean(PreferenceKey.SHOW_COLORTXT, false);
         mTopicContentSize = sp.getInt(PreferenceKey.WEB_SIZE, 16);
-        mTopicTitleSize = sp.getFloat(PreferenceKey.TEXT_SIZE, 21f);
+        mTopicTitleSize = sp.getFloat(PreferenceKey.TEXT_SIZE, Constants.DEFAULT_TEXT_SIZE);
         mUpdateAfterPost = sp.getBoolean(PreferenceKey.REFRESH_AFTERPOST_SETTING_MODE, true);
         mAvatarWidth = sp.getInt(PreferenceKey.NICK_WIDTH, 100);
         mShowClassicIcon = sp.getBoolean(PreferenceKey.SHOW_ICON_MODE, false);
