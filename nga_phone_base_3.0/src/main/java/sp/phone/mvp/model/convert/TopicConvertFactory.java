@@ -6,15 +6,20 @@ import com.alibaba.fastjson.JSON;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import sp.phone.bean.SubBoard;
 import sp.phone.bean.TopicListBean;
+import sp.phone.common.FilterKeyword;
+import sp.phone.common.FilterKeywordsManager;
+import sp.phone.common.FilterKeywordsManagerImpl;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.mvp.model.entity.ThreadPageInfo;
 import sp.phone.mvp.model.entity.TopicListInfo;
-import sp.phone.util.BoardUtils;
+import sp.phone.util.ForumUtils;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
@@ -38,12 +43,52 @@ public class TopicConvertFactory {
             TopicListInfo listInfo = new TopicListInfo();
             convertSubBoard(listInfo, topicListBean);
             convertTopic(listInfo, topicListBean, page);
+            listInfo.curTime = topicListBean.getTime();
             sort(listInfo);
+            filter(listInfo);
             return listInfo;
         } catch (NullPointerException e) {
             NLog.e(TAG, "can not parse :\n" + js);
             return null;
         }
+
+    }
+
+    private void filter(TopicListInfo data) {
+
+        FilterKeywordsManager filterKeywordsManager = FilterKeywordsManagerImpl.getInstance();
+        List<FilterKeyword> list = filterKeywordsManager.getKeywords();
+
+        for (FilterKeyword keyword : list) {
+            if (keyword.isEnabled()) {
+                Iterator<ThreadPageInfo> iterator = data.getThreadPageList().iterator();
+                while (iterator.hasNext()) {
+                    ThreadPageInfo item = iterator.next();
+                    if (item.getSubject().contains(keyword.getKeyword())) {
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        // 低版本android 没有stream方法
+        // TODO: 如果第一页全部都是被屏蔽的，可能会认为加载失败
+//        data.setThreadPageList(
+//                data.getThreadPageList().stream().filter((ThreadPageInfo threadPageInfo) -> {
+//                    return FilterKeywordsManagerImpl
+//                            .getInstance()
+//                            .getKeywords()
+//                            .parallelStream()
+//                            .noneMatch(filterKeyword -> {
+//                                if (filterKeyword.isEnabled()) {
+//                                    return threadPageInfo
+//                                            .getSubject()
+//                                            .contains(filterKeyword.getKeyword());
+//                                } else {
+//                                    return false;
+//                                }
+//                            });
+//                }).collect(Collectors.toList())
+ //       );
 
     }
 
@@ -80,7 +125,11 @@ public class TopicConvertFactory {
                 Map<String, String> boardMap = subBoardMap.get(key);
                 SubBoard board = new SubBoard();
                 Object obj = boardMap.get("0");
-                board.setFid(Integer.parseInt(obj.toString()));
+                if (key.startsWith("t")) {
+                    board.setStid(Integer.parseInt(obj.toString()));
+                } else {
+                    board.setFid(Integer.parseInt(obj.toString()));
+                }
 
                 // 有些子版块的fid的key是3，大部分都是1
                 if (boardMap.containsKey("3")) {
@@ -95,7 +144,7 @@ public class TopicConvertFactory {
                 board.setDescription(boardMap.get("2"));
                 if (boardMap.containsKey("4")) {
                     obj = boardMap.get("4");
-                    board.setChecked(BoardUtils.isBoardSubscribed(Integer.parseInt(obj.toString())));
+                    board.setChecked(ForumUtils.isBoardSubscribed(Integer.parseInt(obj.toString())));
                 } else {
                     board.setType(-1);
                     board.setChecked(true);

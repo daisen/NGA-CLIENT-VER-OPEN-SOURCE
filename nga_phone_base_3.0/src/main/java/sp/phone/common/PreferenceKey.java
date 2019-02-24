@@ -17,6 +17,7 @@ public interface PreferenceKey {
     String NIGHT_MODE = "nightmode";
     String VERSION = "version";
     String NICK_WIDTH = "nickWidth";
+    String EMO_WIDTH = "emotionWidth";
     String REFRESH_AFTERPOST_SETTING_MODE = "refresh_after_post_setting_mode";
     String SHOW_SIGNATURE = "showSignature";
     String SHOW_STATIC = "showStatic";
@@ -28,6 +29,7 @@ public interface PreferenceKey {
 
     String USER_LIST = "userList";
     String BLACK_LIST = "";
+    String FILTER_KEYWORDS_LIST = "filter_keywords";
 
     String SHOW_ICON_MODE = "showiconmode";
 
@@ -60,4 +62,10 @@ public interface PreferenceKey {
     String KEY_SWIPE_BACK = "swipe_back";
 
     public static final String KEY_NGA_DOMAIN = "nga_domain";
+
+    public static final String KEY_SEARCH_HISTORY_TOPIC = "search_history_topic";
+
+    public static final String KEY_SEARCH_HISTORY_BOARD = "search_history_board";
+
+    public static final String KEY_SEARCH_HISTORY_USER = "search_history_user";
 }

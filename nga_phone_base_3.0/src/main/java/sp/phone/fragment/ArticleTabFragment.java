@@ -130,6 +130,11 @@ public class ArticleTabFragment extends BaseRxFragment {
 
         mTabLayout.setTabMode(TabLayout.MODE_FIXED);
         mTabLayout.setupWithViewPager(mViewPager);
+
+        mFam.getAddFloatingActionButton().setOnLongClickListener(v -> {
+            mBehavior.animateOut(mFam);
+            return true;
+        });
         super.onViewCreated(view, savedInstanceState);
     }
 
@@ -179,8 +184,7 @@ public class ArticleTabFragment extends BaseRxFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add_bookmark:
-                BookmarkTask bt = new BookmarkTask(getContext());
-                bt.execute(String.valueOf(mRequestParam.tid));
+                BookmarkTask.execute(mRequestParam.tid);
                 break;
             case R.id.menu_goto_floor:
                 createGotoDialog();

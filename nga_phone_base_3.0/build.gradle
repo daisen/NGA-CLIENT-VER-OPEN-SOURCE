@@ -13,7 +13,6 @@ def isJenkins() {
 
 android {
     compileSdkVersion project.compileSdkVersion
-    buildToolsVersion project.buildToolsVersion
 
     signingConfigs {
         signingConfig {
@@ -38,8 +37,8 @@ android {
 
     defaultConfig {
         applicationId "gov.anzong.androidnga"
-        minSdkVersion 21
-        targetSdkVersion 26
+        minSdkVersion project.minSdkVersion
+        targetSdkVersion project.targetSdkVersion
         multiDexEnabled true
         resConfigs "zh", "en"
 
@@ -82,30 +81,17 @@ android {
         abortOnError false
         disable 'MissingTranslation'
     }
-
-    //修改生成的apk名字
-    android.applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            def newName
-            def timeNow
-            timeNow = getDate()
-            newName = 'NGA-v' + project.appVersionName + '-' + timeNow + '-' + variant.buildType.name + '.apk'
-            outputFileName = new File(newName)
-
-        }
-    }
 }
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
 
-    implementation project(':SwipeBackLayoutLibrary')
-
     implementation(name: 'floatingactionmenu', ext: 'aar')
 
-    implementation "com.android.support:support-v4:" + project.androidSupportVersion
-    implementation "com.android.support:design:" + project.androidSupportVersion
-    implementation 'com.android.support:cardview-v7:' + project.androidSupportVersion
+    implementation "com.android.support:support-v4:$project.androidSupportVersion"
+    implementation "com.android.support:design:$project.androidSupportVersion"
+    implementation "com.android.support:cardview-v7:$project.androidSupportVersion"
+   // implementation 'com.android.support:preference-v7:' + project.androidSupportVersion
 
     implementation 'com.alibaba:fastjson:1.2.41'
     implementation 'com.jakewharton:butterknife:8.8.1'
@@ -123,6 +109,9 @@ dependencies {
     annotationProcessor 'com.alibaba:arouter-compiler:1.1.4'
     implementation 'com.github.bumptech.glide:glide:4.3.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
+    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+
+    implementation 'me.imid.swipebacklayout.lib:library:1.1.0'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'

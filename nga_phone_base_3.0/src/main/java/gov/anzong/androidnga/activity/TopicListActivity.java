@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 
 import com.alibaba.android.arouter.facade.annotation.Route;
+import com.alibaba.android.arouter.launcher.ARouter;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
@@ -46,6 +47,7 @@ public class TopicListActivity extends BaseActivity {
             requestParam.fidGroup = StringUtils.getStringBetween(url, 0, "fidgroup=", "&").result;
             requestParam.content = StringUtils.getUrlParameter(url, "content");
             requestParam.fid = StringUtils.getUrlParameter(url, "fid");
+            requestParam.stid = StringUtils.getUrlParameter(url, "stid");
         } else if (bundle != null) {
             requestParam = bundle.getParcelable(ParamKey.KEY_PARAM);
             if (requestParam == null) {
@@ -60,6 +62,8 @@ public class TopicListActivity extends BaseActivity {
                 requestParam.fidGroup = bundle.getString(ParamKey.KEY_FID_GROUP);
                 requestParam.title = bundle.getString(ParamKey.KEY_TITLE);
                 requestParam.recommend = bundle.getInt(ParamKey.KEY_RECOMMEND, 0);
+                requestParam.twentyfour = bundle.getInt(ParamKey.KEY_TWENTYFOUR, 0);
+                requestParam.stid = bundle.getInt(ParamKey.KEY_STID, 0);
             }
         }
 
@@ -71,7 +75,7 @@ public class TopicListActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        hideActionBar();
+        setToolbarEnabled(true);
         mRequestParam = getRequestParam();
         super.onCreate(savedInstanceState);
         setupFragment();
@@ -98,6 +102,7 @@ public class TopicListActivity extends BaseActivity {
 
     private boolean isBoardTopicList() {
         return mRequestParam.recommend == 0
+                && mRequestParam.twentyfour == 0
                 && mRequestParam.key == null
                 && mRequestParam.favor == 0
                 && mRequestParam.authorId == 0
@@ -117,11 +122,14 @@ public class TopicListActivity extends BaseActivity {
             case R.id.menu_recommend:
                 showRecommendTopicList();
                 break;
+            case R.id.menu_twenty_four:
+                showTwentyFourList();
+                break;
             case R.id.menu_search:
-                Bundle bundle = new Bundle();
-                bundle.putInt("fid", mRequestParam.fid);
-                bundle.putInt("authorid", mRequestParam.authorId);
-                ActivityUtils.startSearchDialog(this, bundle);
+                ARouter.getInstance()
+                        .build(ARouterConstants.ACTIVITY_SEARCH)
+                        .withInt("fid", mRequestParam.fid)
+                        .navigation(this);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -137,6 +145,16 @@ public class TopicListActivity extends BaseActivity {
         bundle.putParcelable(ParamKey.KEY_PARAM, param);
         intent.putExtras(bundle);
         ActivityUtils.startRecommendTopicActivity(this, intent);
+    }
+
+    private void showTwentyFourList() {
+        TopicListParam param = (TopicListParam) mRequestParam.clone();
+        param.twentyfour = 1;
+        Intent intent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(ParamKey.KEY_PARAM, param);
+        intent.putExtras(bundle);
+        ActivityUtils.startTwentyFourActivity(this, intent);
     }
 
     @Override

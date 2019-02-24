@@ -1,6 +1,7 @@
 package gov.anzong.androidnga.activity;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,6 +15,7 @@ import com.alibaba.android.arouter.launcher.ARouter;
 import gov.anzong.androidnga.NgaClientApp;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
+import sp.phone.common.User;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.forumoperation.ParamKey;
 import sp.phone.fragment.BoardFragment;
@@ -33,7 +35,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setActionBarEnabled(false);
+        setToolbarEnabled(true);
         super.onCreate(savedInstanceState);
         checkPermission();
         checkNewVersion();
@@ -49,10 +51,12 @@ public class MainActivity extends BaseActivity {
     }
 
     private void checkNewVersion() {
-        NgaClientApp app = (NgaClientApp) getApplication();
-        if (app.isNewVersion()) {
-            app.setNewVersion(false);
-            new VersionUpgradeDialogFragment().show(getSupportFragmentManager(), null);
+        Application app = getApplication();
+        if (app instanceof NgaClientApp) {
+            if (((NgaClientApp) app).isNewVersion()) {
+                ((NgaClientApp) app).setNewVersion(false);
+                new VersionUpgradeDialogFragment().show(getSupportFragmentManager(), null);
+            }
         }
     }
 
@@ -104,7 +108,7 @@ public class MainActivity extends BaseActivity {
                 aboutNgaClient();
                 break;
             case R.id.menu_search:
-                searchProfile();
+                startSearchActivity();
                 break;
             case R.id.menu_forward:
                 new UrlInputDialogFragment().show(getSupportFragmentManager());
@@ -118,8 +122,10 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
-    private void searchProfile() {
-        new ProfileSearchDialogFragment().show(getSupportFragmentManager());
+    private void startSearchActivity() {
+        ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_SEARCH)
+                .navigation(this);
     }
 
     private void startMessageActivity() {
@@ -155,7 +161,8 @@ public class MainActivity extends BaseActivity {
 
     // NPE问题
     private void startPostActivity(boolean isReply) {
-        String userName = UserManagerImpl.getInstance().getActiveUser().getNickName();
+        User user = UserManagerImpl.getInstance().getActiveUser();
+        String userName = user != null ? user.getNickName() : "";
         Postcard postcard = ARouter.getInstance()
                 .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                 .withString(ParamKey.KEY_AUTHOR, userName);

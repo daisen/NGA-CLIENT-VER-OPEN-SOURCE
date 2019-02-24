@@ -6,7 +6,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.v7.app.AppCompatDelegate;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.alibaba.android.arouter.facade.annotation.Route;
+import com.alibaba.android.arouter.launcher.ARouter;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ import sp.phone.common.UserManager;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.forumoperation.ParamKey;
 import sp.phone.listener.OnHttpCallBack;
+import sp.phone.mvp.model.convert.decoder.ForumDecoder;
 import sp.phone.task.JsonProfileLoadTask;
 import sp.phone.theme.ThemeManager;
 import sp.phone.util.ActivityUtils;
@@ -108,15 +110,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
     private JsonProfileLoadTask mProfileLoadTask;
 
-    @Override
-    protected void updateThemeUi() {
-        setTheme(mThemeManager.getTheme(false));
-        if (mThemeManager.isNightMode()) {
-            getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }
-    }
+    private Menu mOptionMenu;
 
     /**
      * 利用反射获取状态栏高度
@@ -134,25 +128,6 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         return result;
     }
 
-    @Override
-    protected void updateWindowFlag() {
-        if (mConfig.isFullScreenMode()) {
-            super.updateWindowFlag();
-        } else {
-            Window window = getWindow();
-            View decorView = window.getDecorView();
-            //两个 flag 要结合使用，表示让应用的主体内容占用系统状态栏的空间
-            int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            decorView.setSystemUiVisibility(option);
-            int flag = WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS;
-            if (mConfig.isHardwareAcceleratedEnabled()) {
-                flag = flag | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
-            }
-            window.addFlags(flag);
-            window.setStatusBarColor(Color.TRANSPARENT);
-        }
-    }
-
     private void updateToolbarLayout() {
         if (!mConfig.isFullScreenMode()) {
             int statusBarHeight = getStatusBarHeight();
@@ -168,6 +143,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setToolbarEnabled(true);
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
@@ -184,9 +160,19 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
         setContentView(R.layout.activity_user_profile);
         ButterKnife.bind(this);
-        setupToolbar();
+        setupActionBar();
         updateToolbarLayout();
+        setupStatusBar();
         refresh();
+    }
+
+    private void setupStatusBar() {
+        Window window = getWindow();
+        View decorView = window.getDecorView();
+        //两个 flag 要结合使用，表示让应用的主体内容占用系统状态栏的空间
+        int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(option);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
 
     private void refresh() {
@@ -223,17 +209,17 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     private void handleUserState(ProfileData profileInfo) {
         if (profileInfo.isMuted()) {
             mUserStateTv.setText("已禁言");
-            mUserStateTv.setTextColor(getColor(R.color.color_state_muted));
+            mUserStateTv.setTextColor(ContextCompat.getColor(this, R.color.color_state_muted));
             if (!StringUtils.isEmpty(profileInfo.getMutedTime())) {
                 mUserMuteTime.setText(profileInfo.getMutedTime());
                 //  mUserMuteTime.setVisibility(View.VISIBLE);
             }
         } else if (profileInfo.isNuked()) {
             mUserStateTv.setText("NUKED(?)");
-            mUserStateTv.setTextColor(getColor(R.color.color_state_nuked));
+            mUserStateTv.setTextColor(ContextCompat.getColor(this, R.color.color_state_nuked));
         } else {
             mUserStateTv.setText("已激活");
-            mUserStateTv.setTextColor(getColor(R.color.color_state_active));
+            mUserStateTv.setTextColor(ContextCompat.getColor(this, R.color.color_state_active));
         }
     }
 
@@ -282,6 +268,9 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         handleSignWebView(mSignWebView, profileInfo);
         handleAdminWebView(mAdminWebView, profileInfo);
         handleFameWebView(mFameWebView, profileInfo);
+        if (mOptionMenu != null) {
+            onPrepareOptionsMenu(mOptionMenu);
+        }
     }
 
     private String createFameHtml(ProfileData ret, String color) {
@@ -312,6 +301,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_user_profile, menu);
         getMenuInflater().inflate(R.menu.menu_default, menu);
+        mOptionMenu = menu;
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -363,12 +353,12 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     }
 
     private void sendShortMessage() {
-        Intent intent = new Intent();
-        intent.putExtra("to", mProfileData.getUserName());
-        intent.putExtra(ParamKey.KEY_ACTION, "new");
-        intent.putExtra("messagemode", "yes");
-        intent.setClass(this, PhoneConfiguration.getInstance().messagePostActivityClass);
-        startActivity(intent);
+        ARouter.getInstance()
+                .build(ARouterConstants.ACTIVITY_MESSAGE_POST)
+                .withString("to", mProfileData.getUserName())
+                .withString(ParamKey.KEY_ACTION, "new")
+                .withString("messagemode", "yes")
+                .navigation(this);
     }
 
     private void searchPost() {
@@ -418,7 +408,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         contentTV.setLocalMode();
         contentTV.loadDataWithBaseURL(
                 null,
-                signatureToHtmlText(ret, FunctionUtils.isShowImage(), FunctionUtils.showImageQuality(), fgColorStr, bgcolorStr),
+                signatureToHtmlText(ret, fgColorStr, bgcolorStr),
                 "text/html", "utf-8", null);
     }
 
@@ -494,10 +484,9 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         return ngaHtml;
     }
 
-    public String signatureToHtmlText(final ProfileData ret, boolean showImage,
-                                      int imageQuality, final String fgColorStr, final String bgcolorStr) {
-        String ngaHtml = StringUtils.decodeForumTag(ret.getSign(), showImage,
-                imageQuality, null);
+    public String signatureToHtmlText(final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
+        String ngaHtml = new ForumDecoder(true).decode(ret.getSign(), null);
+
         ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
                 + "<body bgcolor= '#"
                 + bgcolorStr
@@ -506,7 +495,8 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
                 + fgColorStr
                 + "' size='2'>"
                 + "<div style=\"border: 3px solid rgb(204, 204, 204);padding: 2px; \">"
-                + ngaHtml + "</div>" + "</font></body>";
+                + ngaHtml + "</div>" + "</font></body>"
+                + "<script type=\"text/javascript\" src=\"file:///android_asset/html/script.js\"></script>";
 
         return ngaHtml;
     }

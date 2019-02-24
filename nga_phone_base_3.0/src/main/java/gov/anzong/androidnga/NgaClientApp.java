@@ -8,6 +8,8 @@ import com.alibaba.android.arouter.launcher.ARouter;
 
 import sp.phone.common.ApplicationContextHolder;
 import sp.phone.common.BoardManagerImpl;
+import sp.phone.common.FilterKeywordsManager;
+import sp.phone.common.FilterKeywordsManagerImpl;
 import sp.phone.common.PreferenceKey;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.debug.BlockCanaryWatcher;
@@ -31,8 +33,8 @@ public class NgaClientApp extends Application {
         initCoreModule();
         initRouter();
         super.onCreate();
+        registerActivityLifecycleCallbacks(new ActivityCallback(this));
     }
-
 
     private void initRouter() {
         if (BuildConfig.DEBUG) {   // 这两行必须写在init之前，否则这些配置在init过程中将无效
@@ -45,6 +47,7 @@ public class NgaClientApp extends Application {
     private void initCoreModule() {
         UserManagerImpl.getInstance().initialize(this);
         BoardManagerImpl.getInstance().initialize(this);
+        FilterKeywordsManagerImpl.getInstance().initialize(this);
         // 注册crashHandler
         CrashHandler.getInstance().init(this);
 

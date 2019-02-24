@@ -14,6 +14,11 @@
             android:key="pref_black_list"
             android:title="@string/setting_title_black_list"/>
 
+        <PreferenceScreen
+            android:fragment="sp.phone.fragment.FilterKeywordsFragment"
+            android:key="pref_keyword"
+            android:title="@string/filter_keywords" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -47,7 +52,7 @@
         android:title="@string/setting_option">
 
         <ListSummaryPreference
-            android:defaultValue="0"
+            android:defaultValue="1"
             android:dialogTitle="@string/setting_nga_domain"
             android:entries="@array/nga_domain"
             android:entryValues="@array/nga_domain_value"

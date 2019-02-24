@@ -18,13 +18,12 @@ import java.util.List;
 import gov.anzong.androidnga.R;
 import sp.phone.bean.Board;
 import sp.phone.bean.BoardCategory;
-import sp.phone.bean.OldBoard;
 
 public class BoardManagerImpl implements BoardManager {
 
     private Context mContext;
 
-    private List<BoardCategory> mCategoryList;
+    private List<BoardCategory> mCategoryList = new ArrayList<>();
 
     private static class BoardManagerHolder {
         static BoardManager sInstance = new BoardManagerImpl();
@@ -37,7 +36,6 @@ public class BoardManagerImpl implements BoardManager {
     @Override
     public void initialize(Context context) {
         mContext = context.getApplicationContext();
-        mCategoryList = new ArrayList<>();
         loadBookmarkBoards();
         loadPreloadBoards();
     }
@@ -166,7 +164,8 @@ public class BoardManagerImpl implements BoardManager {
         category.add(new Board("492", "部落冲突:皇室战争", 492, 492));
         category.add(new Board("-362960", "最终幻想14", 362960, 362960));
         category.add(new Board("-6194253", "战争雷霆", 6194253, 6194253));
-        category.add(new Board("427", "怪物猎人", 427, 427));
+        category.add(new Board(489, "怪物猎人"));
+        category.add(new Board("427", "怪物猎人Online", 427, 427));
         category.add(new Board("-47218", "地下城与勇士", 47218));
         category.add(new Board("425", "行星边际2", 425, 425));
         category.add(new Board("-65653", "剑灵", 65653, 65653));
@@ -258,18 +257,7 @@ public class BoardManagerImpl implements BoardManager {
         BoardCategory category = new BoardCategory("我的收藏");
         String bookmarkStr = sp.getString(PreferenceKey.BOOKMARK_BOARD, null);
         if (bookmarkStr != null) {
-            List<Board> boards;
-            if (bookmarkStr.contains("url")) {
-                List<OldBoard> oldBoards = JSON.parseArray(bookmarkStr, OldBoard.class);
-                boards = new ArrayList<>();
-                for (OldBoard oldBoard : oldBoards) {
-                    boards.add(new Board(oldBoard.getUrl(), oldBoard.getName()));
-                }
-                sp.edit().putString(PreferenceKey.BOOKMARK_BOARD, JSON.toJSONString(boards)).apply();
-            } else {
-                boards = JSON.parseArray(bookmarkStr, Board.class);
-            }
-
+            List<Board> boards = JSON.parseArray(bookmarkStr, Board.class);
             if (!boards.isEmpty()) {
                 category.getBoardList().addAll(boards);
             }

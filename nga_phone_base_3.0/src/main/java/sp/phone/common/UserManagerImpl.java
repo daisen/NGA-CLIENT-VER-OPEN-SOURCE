@@ -14,10 +14,6 @@ import java.util.List;
 
 import sp.phone.bean.ThreadData;
 import sp.phone.bean.ThreadRowInfo;
-import sp.phone.bean.ThreadData;
-import sp.phone.bean.ThreadRowInfo;
-
-import static sp.phone.common.PreferenceKey.USER_ACTIVE_INDEX;
 
 
 public class UserManagerImpl implements UserManager {
@@ -324,12 +320,16 @@ public class UserManagerImpl implements UserManager {
 
     @Override
     public void putAvatarUrl(ThreadData info) {
+        if (info.getRowList() == null) {
+            return;
+        }
         SharedPreferences.Editor editor = mAvatarPreferences.edit();
         for (ThreadRowInfo rowInfo : info.getRowList()) {
             String uid = String.valueOf(rowInfo.getAuthorid());
             String url = rowInfo.getJs_escap_avatar();
             if (!TextUtils.isEmpty(uid) && !uid.equals("0") && !TextUtils.isEmpty(url)) {
                 editor.putString(uid, url);
+                setAvatarUrl(Integer.parseInt(uid), url);
             }
         }
         editor.apply();
